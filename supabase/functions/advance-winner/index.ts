@@ -11,7 +11,17 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { match_id, winner_id } = await req.json()
+    let body: { match_id?: string; winner_id?: string }
+    try {
+      body = await req.json()
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    const { match_id, winner_id } = body
     if (!match_id || !winner_id) {
       return new Response(JSON.stringify({ error: 'match_id and winner_id required' }), {
         status: 400,
@@ -24,6 +34,7 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Получить текущий матч
     const { data: match, error: matchError } = await supabase
       .from('matches')
       .select('round, position, tournament_id')
@@ -37,6 +48,7 @@ Deno.serve(async (req: Request) => {
       })
     }
 
+    // Найти матч следующего раунда
     const nextRound = match.round + 1
     const nextPosition = Math.floor(match.position / 2)
     const isPlayer1Slot = match.position % 2 === 0
@@ -50,16 +62,32 @@ Deno.serve(async (req: Request) => {
       .single()
 
     if (nextMatch) {
+      // Поставить победителя в следующий матч
       const updateField = isPlayer1Slot ? 'player1_id' : 'player2_id'
-      await supabase
+      const { error: advanceError } = await supabase
         .from('matches')
         .update({ [updateField]: winner_id })
         .eq('id', nextMatch.id)
+
+      if (advanceError) {
+        return new Response(JSON.stringify({ error: `Failed to advance winner: ${advanceError.message}` }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
     } else {
-      await supabase
+      // Нет следующего матча — финал сыгран, турнир завершён
+      const { error: finishError } = await supabase
         .from('tournaments')
         .update({ status: 'finished' })
         .eq('id', match.tournament_id)
+
+      if (finishError) {
+        return new Response(JSON.stringify({ error: `Failed to finish tournament: ${finishError.message}` }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
     }
 
     return new Response(JSON.stringify({ success: true }), {

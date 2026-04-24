@@ -56,7 +56,17 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { tournament_id } = await req.json()
+    let body: { tournament_id?: string }
+    try {
+      body = await req.json()
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    const { tournament_id } = body
     if (!tournament_id) {
       return new Response(JSON.stringify({ error: 'tournament_id required' }), {
         status: 400,
@@ -93,10 +103,17 @@ Deno.serve(async (req: Request) => {
       })
     }
 
-    await supabase
+    const { error: statusError } = await supabase
       .from('tournaments')
       .update({ status: 'ongoing' })
       .eq('id', tournament_id)
+
+    if (statusError) {
+      return new Response(JSON.stringify({ error: `Failed to update tournament status: ${statusError.message}` }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
 
     return new Response(
       JSON.stringify({ success: true, matches_count: matches.length }),
