@@ -1,4 +1,4 @@
-import { InputHTMLAttributes } from 'react'
+import { InputHTMLAttributes, useId } from 'react'
 import { cn } from '@/lib/utils'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -6,11 +6,19 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string
 }
 
-export function Input({ label, error, className, ...props }: InputProps) {
+export function Input({ label, error, className, id, ...props }: InputProps) {
+  const generatedId = useId()
+  const inputId = id ?? generatedId
+
   return (
     <div className="flex flex-col gap-1">
-      {label && <label className="text-sm text-gray-400">{label}</label>}
+      {label && (
+        <label htmlFor={inputId} className="text-sm text-gray-400">
+          {label}
+        </label>
+      )}
       <input
+        id={inputId}
         className={cn(
           'border border-slate-600 bg-slate-800 text-white rounded-lg px-4 py-3',
           'focus:outline-none focus:border-green-500',
