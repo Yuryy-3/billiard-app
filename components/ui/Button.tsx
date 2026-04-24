@@ -1,19 +1,21 @@
 import { ButtonHTMLAttributes } from 'react'
 import { cn } from '@/lib/utils'
 
-type Variant = 'primary' | 'ghost'
-
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant
+  variant?: 'primary' | 'secondary' | 'danger'
 }
 
 export function Button({ variant = 'primary', className, children, ...props }: ButtonProps) {
+  const variants = {
+    primary: 'bg-green-600 hover:bg-green-700 text-white',
+    secondary: 'bg-slate-700 hover:bg-slate-600 text-white',
+    danger: 'bg-red-600 hover:bg-red-700 text-white',
+  }
   return (
     <button
       className={cn(
-        'rounded-full px-5 py-2.5 font-semibold text-sm transition-opacity disabled:opacity-50',
-        variant === 'primary' && 'bg-accent-orange text-white',
-        variant === 'ghost'   && 'text-text-secondary underline',
+        'rounded-lg px-4 py-3 font-semibold transition disabled:opacity-50 cursor-pointer',
+        variants[variant],
         className
       )}
       {...props}

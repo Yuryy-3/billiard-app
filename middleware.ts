@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const path = request.nextUrl.pathname
 
-  const isProtected = PROTECTED_ROUTES.some(r => path.startsWith(r))
+  const isProtected = PROTECTED_ROUTES.some(r => path === r || path.startsWith(r + '/'))
   if (isProtected && !user) {
     return NextResponse.redirect(new URL('/auth', request.url))
   }
@@ -36,5 +36,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|icons|manifest.json|sw.js).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|icons|manifest.json|sw.js|api).*)'],
 }
