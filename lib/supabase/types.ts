@@ -201,7 +201,7 @@ export interface Database {
           id: string
           user_id: string
           match_id: string | null
-          type: string
+          type: 'registration_confirmed' | 'match_soon' | 'table_assigned' | 'match_result' | 'tournament_finished'
           channel: 'push' | 'sms'
           sent_at: string
         }
@@ -209,7 +209,7 @@ export interface Database {
           id?: string
           user_id: string
           match_id?: string | null
-          type: string
+          type: 'registration_confirmed' | 'match_soon' | 'table_assigned' | 'match_result' | 'tournament_finished'
           channel: 'push' | 'sms'
           sent_at?: string
         }
@@ -217,7 +217,7 @@ export interface Database {
           id?: string
           user_id?: string
           match_id?: string | null
-          type?: string
+          type?: 'registration_confirmed' | 'match_soon' | 'table_assigned' | 'match_result' | 'tournament_finished'
           channel?: 'push' | 'sms'
           sent_at?: string
         }
