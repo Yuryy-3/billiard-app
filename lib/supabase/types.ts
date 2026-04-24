@@ -140,6 +140,7 @@ export interface Database {
           table_number: number | null
           started_at: string | null
           finished_at: string | null
+          created_at: string
         }
         Insert: {
           id?: string
@@ -154,6 +155,7 @@ export interface Database {
           table_number?: number | null
           started_at?: string | null
           finished_at?: string | null
+          created_at?: string
         }
         Update: {
           id?: string
@@ -168,6 +170,7 @@ export interface Database {
           table_number?: number | null
           started_at?: string | null
           finished_at?: string | null
+          created_at?: string
         }
       }
       push_subscriptions: {
