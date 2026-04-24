@@ -5,4 +5,11 @@
 body {
   background-color: #0d1f1a;
   color: #ffffff;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+@layer components {
+  .card {
+    @apply bg-bg-card rounded-card p-4;
+  }
 }
