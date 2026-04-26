@@ -34,7 +34,7 @@ describe('generateBracketMatches', () => {
   it('has 4 rounds for 16 players (1/8, 1/4, 1/2, final)', () => {
     const players = Array.from({ length: 16 }, (_, i) => `user-${i}`)
     const matches = generateBracketMatches('t-1', players)
-    const rounds = [...new Set(matches.map(m => m.round))].sort()
+    const rounds = Array.from(new Set(matches.map(m => m.round))).sort()
     expect(rounds).toEqual([1, 2, 3, 4])
   })
 

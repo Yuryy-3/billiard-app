@@ -1,6 +1,3 @@
--- Расширение для UUID
-create extension if not exists "uuid-ossp";
-
 -- Профили пользователей (расширяет auth.users)
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -14,7 +11,7 @@ create table public.profiles (
 
 -- Турниры
 create table public.tournaments (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   organizer_id uuid not null references public.profiles(id),
   title text not null,
   date timestamptz not null,
@@ -37,7 +34,7 @@ create table public.tournaments (
 
 -- Регистрации
 create table public.registrations (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   tournament_id uuid not null references public.tournaments(id) on delete cascade,
   user_id uuid not null references public.profiles(id),
   payment_status text not null default 'pending'
@@ -49,7 +46,7 @@ create table public.registrations (
 
 -- Матчи
 create table public.matches (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   tournament_id uuid not null references public.tournaments(id) on delete cascade,
   round int not null,
   position int not null,
@@ -67,7 +64,7 @@ create table public.matches (
 
 -- Push подписки
 create table public.push_subscriptions (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles(id) on delete cascade,
   endpoint text not null unique,
   p256dh text not null,
@@ -77,7 +74,7 @@ create table public.push_subscriptions (
 
 -- Уведомления (лог)
 create table public.notifications (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles(id),
   match_id uuid references public.matches(id),
   type text not null check (type in ('registration_confirmed', 'match_soon', 'table_assigned', 'match_result', 'tournament_finished')),
