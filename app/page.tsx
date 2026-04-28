@@ -45,7 +45,7 @@ export default async function HomePage() {
   return (
     <main className="max-w-lg mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <Image src="/logo.jpg" alt="Виктория" width={120} height={80} className="object-contain" />
+        <Image src="/logo.png" alt="Виктория" width={160} height={113} className="object-contain" />
         <div className="flex gap-3">
           {user ? (
             <Link href="/profile" className="text-green-400 text-sm hover:text-green-300">
