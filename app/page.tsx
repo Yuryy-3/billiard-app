@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { TournamentCard } from '@/components/tournaments/TournamentCard'
 import Link from 'next/link'
@@ -44,7 +45,7 @@ export default async function HomePage() {
   return (
     <main className="max-w-lg mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">🎱 Бильярд Турниры</h1>
+        <Image src="/logo.jpg" alt="Виктория" width={120} height={80} className="object-contain" />
         <div className="flex gap-3">
           {user ? (
             <Link href="/profile" className="text-green-400 text-sm hover:text-green-300">

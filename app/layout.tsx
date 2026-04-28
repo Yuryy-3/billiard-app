@@ -7,10 +7,10 @@ import './globals.css'
 const inter = Inter({ subsets: ['cyrillic', 'latin'] })
 
 export const metadata: Metadata = {
-  title: 'Бильярд Турниры',
-  description: 'Турниры по русскому бильярду среди любителей',
+  title: 'Виктория — Бильярдный клуб',
+  description: 'Турниры по русскому бильярду в клубе Виктория',
   manifest: '/manifest.json',
-  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'БильТур' },
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Виктория' },
 }
 
 export const viewport: Viewport = {
