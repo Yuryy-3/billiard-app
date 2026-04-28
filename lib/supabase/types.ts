@@ -17,6 +17,7 @@ export interface Database {
           photo_url: string | null
           city: string
           role: 'participant' | 'organizer'
+          telegram_chat_id: number | null
           created_at: string
         }
         Insert: {
@@ -26,6 +27,7 @@ export interface Database {
           photo_url?: string | null
           city?: string
           role?: 'participant' | 'organizer'
+          telegram_chat_id?: number | null
           created_at?: string
         }
         Update: {
@@ -35,6 +37,30 @@ export interface Database {
           photo_url?: string | null
           city?: string
           role?: 'participant' | 'organizer'
+          telegram_chat_id?: number | null
+          created_at?: string
+        }
+      }
+      telegram_link_tokens: {
+        Row: {
+          id: string
+          user_id: string
+          token: string
+          expires_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          token?: string
+          expires_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          token?: string
+          expires_at?: string
           created_at?: string
         }
       }
