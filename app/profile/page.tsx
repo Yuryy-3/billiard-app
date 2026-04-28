@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import type { Database } from '@/lib/supabase/types'
+import { TelegramConnect } from '@/components/profile/TelegramConnect'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 
@@ -77,6 +78,11 @@ export default async function ProfilePage() {
           <div className="text-3xl font-bold text-yellow-400">{winRate}%</div>
           <div className="text-sm text-gray-400 mt-1">% побед</div>
         </div>
+      </div>
+
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold mb-3">Уведомления</h2>
+        <TelegramConnect telegramChatId={profile?.telegram_chat_id ?? null} />
       </div>
 
       <h2 className="text-lg font-semibold mb-4">История турниров</h2>
