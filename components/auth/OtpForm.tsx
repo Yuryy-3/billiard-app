@@ -72,7 +72,7 @@ export function OtpForm() {
             placeholder="Код из письма"
             value={otp}
             onChange={e => setOtp(e.target.value)}
-            maxLength={6}
+            maxLength={8}
             className="border border-slate-600 bg-slate-800 text-white rounded-lg px-4 py-3 text-lg text-center tracking-widest"
           />
           <button
