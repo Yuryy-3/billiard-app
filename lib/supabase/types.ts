@@ -40,6 +40,7 @@ export interface Database {
           telegram_chat_id?: number | null
           created_at?: string
         }
+        Relationships: []
       }
       telegram_link_tokens: {
         Row: {
@@ -63,6 +64,7 @@ export interface Database {
           expires_at?: string
           created_at?: string
         }
+        Relationships: []
       }
       tournaments: {
         Row: {
@@ -125,6 +127,7 @@ export interface Database {
           status?: 'draft' | 'open' | 'closed' | 'ongoing' | 'finished'
           created_at?: string
         }
+        Relationships: []
       }
       registrations: {
         Row: {
@@ -151,6 +154,7 @@ export interface Database {
           paid_at?: string | null
           created_at?: string
         }
+        Relationships: []
       }
       matches: {
         Row: {
@@ -198,6 +202,7 @@ export interface Database {
           finished_at?: string | null
           created_at?: string
         }
+        Relationships: []
       }
       push_subscriptions: {
         Row: {
@@ -224,6 +229,7 @@ export interface Database {
           auth?: string
           created_at?: string
         }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -231,7 +237,7 @@ export interface Database {
           user_id: string
           match_id: string | null
           type: 'registration_confirmed' | 'match_soon' | 'table_assigned' | 'match_result' | 'tournament_finished'
-          channel: 'push' | 'sms'
+          channel: 'push' | 'sms' | 'telegram'
           sent_at: string
         }
         Insert: {
@@ -239,7 +245,7 @@ export interface Database {
           user_id: string
           match_id?: string | null
           type: 'registration_confirmed' | 'match_soon' | 'table_assigned' | 'match_result' | 'tournament_finished'
-          channel: 'push' | 'sms'
+          channel: 'push' | 'sms' | 'telegram'
           sent_at?: string
         }
         Update: {
@@ -247,9 +253,22 @@ export interface Database {
           user_id?: string
           match_id?: string | null
           type?: 'registration_confirmed' | 'match_soon' | 'table_assigned' | 'match_result' | 'tournament_finished'
-          channel?: 'push' | 'sms'
+          channel?: 'push' | 'sms' | 'telegram'
           sent_at?: string
         }
+        Relationships: []
+      }
+    }
+    Views: {
+      [key: string]: {
+        Row: Record<string, unknown>
+        Relationships: never[]
+      }
+    }
+    Functions: {
+      [key: string]: {
+        Args: Record<string, unknown>
+        Returns: unknown
       }
     }
   }

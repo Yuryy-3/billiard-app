@@ -9,7 +9,8 @@ export async function POST() {
   const token = crypto.randomUUID()
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
 
-  await supabase.from('telegram_link_tokens').insert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase as any).from('telegram_link_tokens').insert({
     user_id: user.id,
     token,
     expires_at: expiresAt,
