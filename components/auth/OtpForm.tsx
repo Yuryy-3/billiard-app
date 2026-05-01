@@ -3,11 +3,11 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
-type Step = 'phone' | 'otp'
+type Step = 'email' | 'otp'
 
 export function OtpForm() {
-  const [step, setStep] = useState<Step>('phone')
-  const [phone, setPhone] = useState('')
+  const [step, setStep] = useState<Step>('email')
+  const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -17,7 +17,7 @@ export function OtpForm() {
   async function sendOtp() {
     setLoading(true)
     setError(null)
-    const { error } = await supabase.auth.signInWithOtp({ phone })
+    const { error } = await supabase.auth.signInWithOtp({ email })
     if (error) {
       setError(error.message)
     } else {
@@ -30,9 +30,9 @@ export function OtpForm() {
     setLoading(true)
     setError(null)
     const { error } = await supabase.auth.verifyOtp({
-      phone,
+      email,
       token: otp,
-      type: 'sms',
+      type: 'email',
     })
     if (error) {
       setError(error.message)
@@ -47,18 +47,18 @@ export function OtpForm() {
     <div className="flex flex-col gap-4 w-full max-w-sm">
       <h1 className="text-2xl font-bold text-center text-white">Войти</h1>
 
-      {step === 'phone' ? (
+      {step === 'email' ? (
         <>
           <input
-            type="tel"
-            placeholder="+7 (999) 123-45-67"
-            value={phone}
-            onChange={e => setPhone(e.target.value)}
+            type="email"
+            placeholder="your@email.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
             className="border border-slate-600 bg-slate-800 text-white rounded-lg px-4 py-3 text-lg"
           />
           <button
             onClick={sendOtp}
-            disabled={loading || phone.length < 10}
+            disabled={loading || !email.includes('@')}
             className="bg-green-600 text-white rounded-lg px-4 py-3 font-semibold disabled:opacity-50"
           >
             {loading ? 'Отправляем...' : 'Получить код'}
@@ -66,10 +66,10 @@ export function OtpForm() {
         </>
       ) : (
         <>
-          <p className="text-gray-400 text-center">Код отправлен на {phone}</p>
+          <p className="text-gray-400 text-center">Код отправлен на {email}</p>
           <input
             type="text"
-            placeholder="Код из SMS"
+            placeholder="Код из письма"
             value={otp}
             onChange={e => setOtp(e.target.value)}
             maxLength={6}
@@ -83,10 +83,10 @@ export function OtpForm() {
             {loading ? 'Проверяем...' : 'Войти'}
           </button>
           <button
-            onClick={() => { setStep('phone'); setOtp(''); setError(null) }}
+            onClick={() => { setStep('email'); setOtp(''); setError(null) }}
             className="text-gray-400 underline text-sm"
           >
-            Изменить номер
+            Изменить email
           </button>
         </>
       )}
