@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import type { Database } from '@/lib/supabase/types'
+
+type ProfileRole = Pick<Database['public']['Tables']['profiles']['Row'], 'role'>
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -13,7 +16,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') redirect('/')
+  const profileData = profile as ProfileRole | null
+
+  if (profileData?.role !== 'admin') redirect('/')
 
   return (
     <div className="flex min-h-screen bg-slate-900 text-white">

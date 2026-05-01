@@ -1,5 +1,11 @@
 import { createAdminClient } from '@/lib/supabase/admin-client'
 
+type RecentRegistration = {
+  created_at: string
+  profiles: { name: string } | null
+  tournaments: { title: string } | null
+}
+
 export default async function AdminDashboard() {
   const supabase = createAdminClient()
 
@@ -18,6 +24,8 @@ export default async function AdminDashboard() {
       .order('created_at', { ascending: false })
       .limit(5),
   ])
+
+  const registrations = (recentRegs ?? []) as unknown as RecentRegistration[]
 
   return (
     <div>
@@ -41,17 +49,15 @@ export default async function AdminDashboard() {
       <div className="bg-slate-800 rounded-xl p-5">
         <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Последние регистрации</h2>
         <div className="flex flex-col gap-3">
-          {(recentRegs ?? []).map((r, i) => {
-            const profile = r.profiles as { name: string } | null
-            const tournament = r.tournaments as { title: string } | null
+          {registrations.map((r, i) => {
             return (
               <div key={i} className="flex justify-between text-sm">
-                <span className="text-slate-200">{profile?.name ?? '—'}</span>
-                <span className="text-slate-500">{tournament?.title ?? '—'} · {new Date(r.created_at).toLocaleDateString('ru-RU')}</span>
+                <span className="text-slate-200">{r.profiles?.name ?? '—'}</span>
+                <span className="text-slate-500">{r.tournaments?.title ?? '—'} · {new Date(r.created_at).toLocaleDateString('ru-RU')}</span>
               </div>
             )
           })}
-          {!recentRegs?.length && <p className="text-slate-500 text-sm">Нет регистраций</p>}
+          {!registrations.length && <p className="text-slate-500 text-sm">Нет регистраций</p>}
         </div>
       </div>
     </div>
