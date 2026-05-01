@@ -16,7 +16,8 @@ export interface Database {
           name: string
           photo_url: string | null
           city: string
-          role: 'participant' | 'organizer'
+          role: 'participant' | 'organizer' | 'admin'
+          is_blocked: boolean
           telegram_chat_id: number | null
           created_at: string
         }
@@ -26,7 +27,8 @@ export interface Database {
           name: string
           photo_url?: string | null
           city?: string
-          role?: 'participant' | 'organizer'
+          role?: 'participant' | 'organizer' | 'admin'
+          is_blocked?: boolean
           telegram_chat_id?: number | null
           created_at?: string
         }
@@ -36,7 +38,8 @@ export interface Database {
           name?: string
           photo_url?: string | null
           city?: string
-          role?: 'participant' | 'organizer'
+          role?: 'participant' | 'organizer' | 'admin'
+          is_blocked?: boolean
           telegram_chat_id?: number | null
           created_at?: string
         }
