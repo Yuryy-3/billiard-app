@@ -17,7 +17,13 @@ export function OtpForm() {
   async function sendOtp() {
     setLoading(true)
     setError(null)
-    const { error } = await supabase.auth.signInWithOtp({ email })
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
     if (error) {
       setError(error.message)
     } else {
