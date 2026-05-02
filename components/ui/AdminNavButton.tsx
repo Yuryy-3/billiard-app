@@ -6,11 +6,13 @@ export async function AdminNavButton() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: profile } = await supabase
+  const { data: profileData } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', user.id)
     .single()
+
+  const profile = profileData as { role: string } | null
 
   if (profile?.role !== 'admin') return null
 
