@@ -16,6 +16,7 @@ export async function GET() {
     .single()
 
   return NextResponse.json({
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
     userId: user.id,
     email: user.email,
     profile,
