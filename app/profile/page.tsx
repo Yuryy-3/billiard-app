@@ -60,7 +60,14 @@ export default async function ProfilePage() {
     <main className="max-w-lg mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">{profile?.name ?? 'Профиль'}</h1>
-        <Link href="/" className="text-gray-400 text-sm hover:text-white">← Главная</Link>
+        <div className="flex gap-3 items-center">
+          {profile?.role === 'admin' && (
+            <Link href="/admin" className="text-purple-400 text-sm hover:text-purple-300">
+              Админ-панель
+            </Link>
+          )}
+          <Link href="/" className="text-gray-400 text-sm hover:text-white">← Главная</Link>
+        </div>
       </div>
 
       <p className="text-gray-400 mb-8">{profile?.phone}</p>
