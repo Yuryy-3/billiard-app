@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { BottomNav } from '@/components/ui/BottomNav'
+import { AdminNavButton } from '@/components/ui/AdminNavButton'
 import { cn } from '@/lib/utils'
 import './globals.css'
 
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ru">
       <body className={cn(inter.className, 'bg-bg-base text-text-primary pb-20')}>
         {children}
+        <AdminNavButton />
         <BottomNav />
       </body>
     </html>

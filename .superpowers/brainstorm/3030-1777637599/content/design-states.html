@@ -1,0 +1,84 @@
+<h2>Дизайн auth-страницы — все состояния</h2>
+<p class="subtitle">Посмотри как будет выглядеть каждый экран. Это итоговый дизайн перед кодингом.</p>
+
+<div class="split" style="flex-wrap:wrap;gap:16px">
+
+  <div class="mockup" style="flex:1;min-width:200px">
+    <div class="mockup-header">1. Уже залогинен</div>
+    <div class="mockup-body" style="background:#0f172a;padding:20px;font-family:sans-serif;color:#fff;text-align:center">
+      <div style="font-size:32px;margin-bottom:12px">👤</div>
+      <div style="font-weight:bold;font-size:16px">Вы уже вошли</div>
+      <div style="color:#94a3b8;font-size:13px;margin:8px 0 16px">victoria@gmail.com</div>
+      <button class="mock-button" style="background:#16a34a;width:100%">На главную →</button>
+      <button class="mock-button" style="background:transparent;border:1px solid #334155;width:100%;margin-top:8px;color:#94a3b8;font-size:12px">Выйти из аккаунта</button>
+    </div>
+  </div>
+
+  <div class="mockup" style="flex:1;min-width:200px">
+    <div class="mockup-header">2. Шаг 1 — ввод email</div>
+    <div class="mockup-body" style="background:#0f172a;padding:20px;font-family:sans-serif;color:#fff">
+      <div style="text-align:center;font-size:18px;font-weight:bold;margin-bottom:16px">Войти</div>
+      <input class="mock-input" placeholder="your@email.com" style="width:100%;box-sizing:border-box">
+      <button class="mock-button" style="width:100%;margin-top:10px;background:#16a34a">Далее →</button>
+    </div>
+  </div>
+
+  <div class="mockup" style="flex:1;min-width:200px">
+    <div class="mockup-header">3. Есть пароль → поле пароля</div>
+    <div class="mockup-body" style="background:#0f172a;padding:20px;font-family:sans-serif;color:#fff">
+      <div style="text-align:center;font-size:18px;font-weight:bold;margin-bottom:4px">Войти</div>
+      <div style="color:#94a3b8;font-size:12px;text-align:center;margin-bottom:14px">victoria@gmail.com</div>
+      <input class="mock-input" placeholder="Пароль" type="password" style="width:100%;box-sizing:border-box">
+      <button class="mock-button" style="width:100%;margin-top:10px;background:#16a34a">Войти</button>
+      <div style="text-align:center;margin-top:12px">
+        <span style="color:#64748b;font-size:12px">Забыл пароль? </span>
+        <span style="color:#60a5fa;font-size:12px;text-decoration:underline;cursor:pointer">Войти через код →</span>
+      </div>
+      <button style="background:none;border:none;color:#64748b;font-size:12px;width:100%;margin-top:8px;cursor:pointer;text-decoration:underline">← Изменить email</button>
+    </div>
+  </div>
+
+  <div class="mockup" style="flex:1;min-width:200px">
+    <div class="mockup-header">4. Нет пароля / новый → OTP</div>
+    <div class="mockup-body" style="background:#0f172a;padding:20px;font-family:sans-serif;color:#fff">
+      <div style="text-align:center;font-size:18px;font-weight:bold;margin-bottom:4px">Войти</div>
+      <div style="color:#94a3b8;font-size:12px;text-align:center;margin-bottom:14px">Код отправлен на victoria@gmail.com</div>
+      <input class="mock-input" placeholder="Код из письма" style="width:100%;box-sizing:border-box;text-align:center;letter-spacing:8px;font-size:20px">
+      <button class="mock-button" style="width:100%;margin-top:10px;background:#16a34a">Подтвердить</button>
+      <button style="background:none;border:none;color:#64748b;font-size:12px;width:100%;margin-top:8px;cursor:pointer;text-decoration:underline">← Изменить email</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="section" style="margin-top:24px">
+  <h3>Что происходит под капотом</h3>
+  <div style="background:#1e293b;border-radius:8px;padding:16px;font-size:13px;color:#cbd5e1;font-family:monospace">
+    <div style="color:#94a3b8;margin-bottom:8px"># После ввода email — один запрос к серверу:</div>
+    <div>POST /api/auth/check-method <span style="color:#64748b">{ email }</span></div>
+    <div style="color:#64748b;margin:4px 0">↓ сервер проверяет Supabase Admin API</div>
+    <div><span style="color:#4ade80">→ { method: "password" }</span> — показать поле пароля</div>
+    <div><span style="color:#60a5fa">→ { method: "otp" }</span> &nbsp;&nbsp;&nbsp;&nbsp;— отправить OTP код</div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:16px">
+  <h3>Новые файлы</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
+    <div style="background:#1e293b;border-radius:6px;padding:10px;color:#cbd5e1">
+      <div style="color:#fbbf24;font-size:11px;margin-bottom:4px">ИЗМЕНИТЬ</div>
+      <div>components/auth/OtpForm.tsx</div>
+      <div style="color:#64748b;font-size:11px">→ SmartAuthForm</div>
+    </div>
+    <div style="background:#1e293b;border-radius:6px;padding:10px;color:#cbd5e1">
+      <div style="color:#4ade80;font-size:11px;margin-bottom:4px">СОЗДАТЬ</div>
+      <div>app/api/auth/check-method/route.ts</div>
+      <div style="color:#64748b;font-size:11px">Admin API проверка</div>
+    </div>
+    <div style="background:#1e293b;border-radius:6px;padding:10px;color:#cbd5e1">
+      <div style="color:#fbbf24;font-size:11px;margin-bottom:4px">ИЗМЕНИТЬ</div>
+      <div>app/auth/page.tsx</div>
+      <div style="color:#64748b;font-size:11px">Проверка сессии → «Вы уже вошли»</div>
+    </div>
+  </div>
+</div>

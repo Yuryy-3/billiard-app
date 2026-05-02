@@ -1,7 +1,12 @@
 import Image from 'next/image'
-import { OtpForm } from '@/components/auth/OtpForm'
+import { createClient } from '@/lib/supabase/server'
+import { SmartAuthForm } from '@/components/auth/SmartAuthForm'
+import { AlreadyLoggedIn } from '@/components/auth/AlreadyLoggedIn'
 
-export default function AuthPage() {
+export default async function AuthPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-slate-900 px-4 gap-8">
       <Image
@@ -12,7 +17,7 @@ export default function AuthPage() {
         className="object-contain"
         priority
       />
-      <OtpForm />
+      {user ? <AlreadyLoggedIn email={user.email ?? ''} /> : <SmartAuthForm />}
     </main>
   )
 }

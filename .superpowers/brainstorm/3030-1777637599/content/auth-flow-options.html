@@ -1,0 +1,65 @@
+<h2>Как должна выглядеть страница входа?</h2>
+<p class="subtitle">Выбери подход, который лучше всего описывает задуманный UX</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0f172a;border-radius:8px;padding:20px;font-family:sans-serif;color:#fff;min-height:220px">
+        <div style="text-align:center;margin-bottom:16px;font-size:13px;color:#94a3b8">Шаг 1</div>
+        <input class="mock-input" placeholder="your@email.com" style="width:100%;box-sizing:border-box">
+        <button class="mock-button" style="width:100%;margin-top:10px;background:#16a34a">Далее →</button>
+        <hr style="border-color:#334155;margin:14px 0">
+        <div style="text-align:center;font-size:13px;color:#94a3b8">Шаг 2 — система выбирает автоматически</div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <div style="flex:1;background:#1e293b;border:1px solid #16a34a;border-radius:6px;padding:8px;font-size:12px;text-align:center">🔑 Пароль<br><span style="color:#64748b;font-size:10px">если зарегистрирован</span></div>
+          <div style="flex:1;background:#1e293b;border:1px dashed #475569;border-radius:6px;padding:8px;font-size:12px;text-align:center">📧 Код<br><span style="color:#64748b;font-size:10px">если новый</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Умный выбор</h3>
+      <p>Пользователь вводит email → система сама определяет метод входа. Если есть пароль — предлагает его, иначе — OTP.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0f172a;border-radius:8px;padding:20px;font-family:sans-serif;color:#fff;min-height:220px">
+        <input class="mock-input" placeholder="your@email.com" style="width:100%;box-sizing:border-box">
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="mock-button" style="flex:1;background:#16a34a;font-size:13px">📧 Код на почту</button>
+          <button class="mock-button" style="flex:1;background:#1d4ed8;font-size:13px">🔑 Пароль</button>
+        </div>
+        <div style="margin-top:14px;background:#1e293b;border-radius:6px;padding:12px">
+          <div style="font-size:12px;color:#94a3b8;margin-bottom:6px">Вариант «Пароль»:</div>
+          <input class="mock-input" placeholder="Введите пароль" type="password" style="width:100%;box-sizing:border-box;font-size:13px">
+          <button class="mock-button" style="width:100%;margin-top:8px;background:#1d4ed8;font-size:13px">Войти</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Выбор пользователя</h3>
+      <p>После ввода email — два явных варианта на выбор. Пользователь сам решает как войти.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0f172a;border-radius:8px;padding:20px;font-family:sans-serif;color:#fff;min-height:220px">
+        <div style="display:flex;border-bottom:2px solid #334155;margin-bottom:16px">
+          <div style="flex:1;text-align:center;padding-bottom:8px;border-bottom:2px solid #16a34a;margin-bottom:-2px;color:#16a34a;font-size:13px;font-weight:bold">📧 Код на почту</div>
+          <div style="flex:1;text-align:center;padding-bottom:8px;color:#64748b;font-size:13px">🔑 Пароль</div>
+        </div>
+        <input class="mock-input" placeholder="your@email.com" style="width:100%;box-sizing:border-box">
+        <button class="mock-button" style="width:100%;margin-top:10px;background:#16a34a">Получить код</button>
+        <p style="font-size:11px;color:#64748b;text-align:center;margin-top:8px">Нажимая кнопку — принимаете условия</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Вкладки сразу</h3>
+      <p>На странице сразу два таба: «Код» и «Пароль». OTP — по умолчанию активный. Переключение мгновенное.</p>
+    </div>
+  </div>
+
+</div>

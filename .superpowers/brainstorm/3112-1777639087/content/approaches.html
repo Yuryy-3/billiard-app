@@ -1,0 +1,40 @@
+<h2>Структура admin-панели — выбери подход</h2>
+<p class="subtitle">Три варианта организации маршрутов и навигации</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Одна страница с вкладками</h3>
+      <p>Один маршрут <code>/admin</code>, внутри вкладки: Обзор / Пользователи / Турниры. Вся навигация — переключение вкладок.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Плюсы</h4><ul><li>Меньше кода</li><li>Быстро сделать</li></ul></div>
+        <div class="cons"><h4>Минусы</h4><ul><li>URL не меняется — нельзя скопировать ссылку на раздел</li><li>Неудобно при большом числе пользователей/турниров</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B ★ Рекомендую</div>
+    <div class="content">
+      <h3>Отдельные страницы</h3>
+      <p>Вложенные маршруты: <code>/admin</code> → <code>/admin/users</code> → <code>/admin/tournaments</code>. Боковая панель навигации.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Плюсы</h4><ul><li>Каждый раздел — отдельный URL</li><li>Легко добавить новые разделы</li><li>Пагинация и фильтры работают нативно</li></ul></div>
+        <div class="cons"><h4>Минусы</h4><ul><li>Чуть больше файлов</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Встроить в профиль</h3>
+      <p>Раздел «Администрирование» внутри страницы профиля. Без отдельного маршрута.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Плюсы</h4><ul><li>Не нужно создавать новый layout</li></ul></div>
+        <div class="cons"><h4>Минусы</h4><ul><li>Перегружает профиль</li><li>Неудобно для полноценной панели</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>

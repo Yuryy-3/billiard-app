@@ -29,7 +29,9 @@ create policy "Admin can delete any tournament"
     exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
   );
 
--- 6. Назначить первого администратора
-update public.profiles set role = 'admin' where id = (
+-- 6. Назначить первого администратора (по email или по первому созданному пользователю)
+update public.profiles set role = 'admin'
+where id = (
   select id from auth.users where email = 'ts9mail@gmail.com'
+  limit 1
 );
