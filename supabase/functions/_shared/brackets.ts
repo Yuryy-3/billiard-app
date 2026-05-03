@@ -308,6 +308,62 @@ function generateGroupsPlayoff(
   return matches
 }
 
+// ── Double Elimination Routing ───────────────────────────────────────────────
+
+export type RouteResult = { bracket: string; round: number; position: number; slot: 0 | 1 }
+
+export function routeDoubleEliminationWinner(
+  match: { bracket: string; round: number; position: number; n: number },
+  outcome: 'winner' | 'loser'
+): RouteResult | null {
+  const { bracket, round, position, n } = match
+  const k = Math.log2(n)
+
+  if (bracket === 'winners') {
+    if (outcome === 'winner') {
+      if (round < k) {
+        return { bracket: 'winners', round: round + 1, position: Math.floor(position / 2), slot: (position % 2) as 0 | 1 }
+      } else {
+        // Winners Final winner → GF player1
+        return { bracket: 'grand_final', round: 1, position: 0, slot: 0 }
+      }
+    } else {
+      // loser
+      if (round === 1) {
+        // WR1 losers pair up in LR1
+        return { bracket: 'losers', round: 1, position: Math.floor(position / 2), slot: (position % 2) as 0 | 1 }
+      } else {
+        // WR(r>=2) losers enter LR even round 2*(r-1), cross-seeded
+        const lrRound = 2 * (round - 1)
+        const matchesInRound = n / Math.pow(2, round)
+        const lrPos = matchesInRound - 1 - position
+        return { bracket: 'losers', round: lrRound, position: lrPos, slot: 0 }
+      }
+    }
+  }
+
+  if (bracket === 'losers') {
+    if (outcome === 'loser') return null  // eliminated
+
+    const losersFinalRound = 2 * (k - 1)
+
+    if (round % 2 === 1) {
+      // Odd LR round: winner goes to next even round, same position, slot=player2
+      return { bracket: 'losers', round: round + 1, position, slot: 1 }
+    } else {
+      // Even LR round
+      if (round < losersFinalRound) {
+        return { bracket: 'losers', round: round + 1, position: Math.floor(position / 2), slot: (position % 2) as 0 | 1 }
+      } else {
+        // Losers Final winner → GF player2
+        return { bracket: 'grand_final', round: 1, position: 0, slot: 1 }
+      }
+    }
+  }
+
+  return null
+}
+
 // ── Entry point ─────────────────────────────────────────────────────────────
 
 export function generateBracket(
