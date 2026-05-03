@@ -101,10 +101,8 @@ export function generateGroupsPlayoff(
     bracketSize *= 2
   }
 
-  const totalPlayoffMatches = bracketSize - 1
   const numRounds = Math.log2(bracketSize)
 
-  let matchIndex = 0
   for (let round = 1; round <= numRounds; round++) {
     const matchesInRound = bracketSize / Math.pow(2, round)
     for (let pos = 0; pos < matchesInRound; pos++) {
@@ -117,13 +115,8 @@ export function generateGroupsPlayoff(
         bracket: 'playoff',
         group_id: -1,
       })
-      matchIndex++
     }
   }
-
-  // Verify we produced the right number of playoff matches
-  // (this is a sanity check; totalPlayoffMatches === bracketSize - 1)
-  void totalPlayoffMatches
 
   return matches
 }
