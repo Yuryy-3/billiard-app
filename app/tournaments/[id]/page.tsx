@@ -57,6 +57,11 @@ export default async function TournamentPage({ params }: { params: { id: string 
   const isRegistered = registrations?.some(r => r.user_id === user?.id) ?? false
   const isOrganizer = user?.id === tournament.organizer_id
 
+  const { data: userProfile } = user
+    ? await supabase.from('profiles').select('role').eq('id', user.id).single()
+    : { data: null }
+  const isAdmin = (userProfile as { role: string } | null)?.role === 'admin'
+
   const organizerName = tournament.profiles?.name ?? 'Организатор'
 
   return (
@@ -141,7 +146,7 @@ export default async function TournamentPage({ params }: { params: { id: string 
           </Link>
         )}
 
-        {isOrganizer && (
+        {(isOrganizer || isAdmin) && (
           <Link
             href={`/tournaments/${tournament.id}/admin`}
             className="bg-slate-700 hover:bg-slate-600 text-white rounded-lg px-4 py-3 font-semibold text-center transition"
