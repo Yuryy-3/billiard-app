@@ -18,7 +18,7 @@ describe('generateGroupsPlayoff', () => {
   it('group matches have group_id set correctly', () => {
     const matches = generateGroupsPlayoff('t1', ['p1','p2','p3','p4','p5','p6','p7','p8'], 4)
     const groupMatches = matches.filter(m => m.bracket === 'group')
-    const groupIds = [...new Set(groupMatches.map(m => m.group_id))]
+    const groupIds = Array.from(new Set(groupMatches.map(m => m.group_id)))
     expect(groupIds).toEqual([0, 1])
   })
 
