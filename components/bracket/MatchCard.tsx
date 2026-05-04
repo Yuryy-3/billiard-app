@@ -17,6 +17,8 @@ export type MatchWithPlayers = {
   table_number: number | null
   started_at: string | null
   finished_at: string | null
+  bracket: string
+  group_id: number
   player1: { name: string } | null
   player2: { name: string } | null
 }
