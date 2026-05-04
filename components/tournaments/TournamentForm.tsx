@@ -1,10 +1,12 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 
-type Discipline = 'svoyak' | 'pyramid' | 'combined'
+type TournamentType = 'championship' | 'cup' | 'open' | 'rating' | 'team'
+type GridFormat = 'single_elimination' | 'double_elimination' | 'round_robin' | 'groups_playoff'
+type Discipline = 'pyramid' | 'free_pyramid' | 'svoyak' | 'combined' | 'nevskaya' | 'kolkhoz' | 'pool_8ball' | 'pool_9ball'
 type PaymentType = 'free' | 'cash' | 'online'
 
 interface FormState {
@@ -12,8 +14,11 @@ interface FormState {
   date: string
   address: string
   tables_count: number
+  tournament_type: TournamentType
+  grid_format: GridFormat
+  group_size: 4 | 5 | 6
   discipline: Discipline
-  participants_limit: 16 | 32 | 64
+  participants_limit: number
   wins_to_advance: 2 | 3
   time_limit_min: 45 | 60 | 90
   shot_clock_sec: number
@@ -34,6 +39,9 @@ export function TournamentForm({ userId }: { userId: string }) {
     date: '',
     address: '',
     tables_count: 4,
+    tournament_type: 'open',
+    grid_format: 'single_elimination',
+    group_size: 4,
     discipline: 'pyramid',
     participants_limit: 16,
     wins_to_advance: 2,
@@ -49,6 +57,17 @@ export function TournamentForm({ userId }: { userId: string }) {
     setForm(prev => ({ ...prev, [key]: value }))
   }
 
+  useEffect(() => {
+    if (form.grid_format === 'round_robin') {
+      set('participants_limit', 6)
+    } else if (form.grid_format === 'groups_playoff') {
+      set('participants_limit', form.group_size * 2)
+    } else {
+      set('participants_limit', 16)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.grid_format, form.group_size])
+
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
@@ -62,6 +81,9 @@ export function TournamentForm({ userId }: { userId: string }) {
         date: new Date(form.date).toISOString(),
         address: form.address,
         tables_count: form.tables_count,
+        tournament_type: form.tournament_type,
+        grid_format: form.grid_format,
+        group_size: form.grid_format === 'groups_playoff' ? form.group_size : null,
         discipline: form.discipline,
         participants_limit: form.participants_limit,
         wins_to_advance: form.wins_to_advance,
@@ -136,6 +158,55 @@ export function TournamentForm({ userId }: { userId: string }) {
         />
       </div>
 
+      {/* Вид соревнования */}
+      <div>
+        <label className="block text-sm text-gray-400 mb-1">Вид соревнования *</label>
+        <select
+          value={form.tournament_type}
+          onChange={e => set('tournament_type', e.target.value as TournamentType)}
+          required
+          className="w-full border border-slate-600 bg-slate-800 text-white rounded-lg px-4 py-3"
+        >
+          <option value="open">Открытый турнир</option>
+          <option value="championship">Чемпионат</option>
+          <option value="cup">Кубок</option>
+          <option value="rating">Рейтинговый турнир</option>
+          <option value="team">Командные соревнования</option>
+        </select>
+      </div>
+
+      {/* Формат сетки */}
+      <div>
+        <label className="block text-sm text-gray-400 mb-1">Формат сетки *</label>
+        <select
+          value={form.grid_format}
+          onChange={e => set('grid_format', e.target.value as GridFormat)}
+          required
+          className="w-full border border-slate-600 bg-slate-800 text-white rounded-lg px-4 py-3"
+        >
+          <option value="single_elimination">Олимпийская система</option>
+          <option value="double_elimination">Двойное выбывание</option>
+          <option value="round_robin">Круговая система</option>
+          <option value="groups_playoff">Группы + плей-офф</option>
+        </select>
+      </div>
+
+      {/* Игроков в группе — только для groups_playoff */}
+      {form.grid_format === 'groups_playoff' && (
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Игроков в группе</label>
+          <select
+            value={form.group_size}
+            onChange={e => set('group_size', Number(e.target.value) as 4 | 5 | 6)}
+            className="w-full border border-slate-600 bg-slate-800 text-white rounded-lg px-4 py-3"
+          >
+            <option value={4}>4</option>
+            <option value={5}>5</option>
+            <option value={6}>6</option>
+          </select>
+        </div>
+      )}
+
       {/* Дисциплина и участники */}
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -145,23 +216,60 @@ export function TournamentForm({ userId }: { userId: string }) {
             onChange={e => set('discipline', e.target.value as Discipline)}
             className="w-full border border-slate-600 bg-slate-800 text-white rounded-lg px-4 py-3"
           >
-            <option value="pyramid">Пирамида</option>
+            <option value="pyramid">Классическая пирамида</option>
+            <option value="free_pyramid">Свободная пирамида</option>
             <option value="svoyak">Свояк</option>
-            <option value="combined">Комбинированная</option>
+            <option value="combined">Комбинированная пирамида</option>
+            <option value="nevskaya">Невская пирамида</option>
+            <option value="kolkhoz">Колхоз (народная)</option>
+            <option value="pool_8ball">Пул 8-ball</option>
+            <option value="pool_9ball">Пул 9-ball</option>
           </select>
         </div>
-        <div>
-          <label className="block text-sm text-gray-400 mb-1">Участников</label>
-          <select
-            value={form.participants_limit}
-            onChange={e => set('participants_limit', Number(e.target.value) as 16 | 32 | 64)}
-            className="w-full border border-slate-600 bg-slate-800 text-white rounded-lg px-4 py-3"
-          >
-            <option value={16}>16</option>
-            <option value={32}>32</option>
-            <option value={64}>64</option>
-          </select>
-        </div>
+
+        {/* Участников — динамически в зависимости от grid_format */}
+        {form.grid_format === 'round_robin' ? (
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Участников (4–32)</label>
+            <input
+              type="number"
+              value={form.participants_limit}
+              min={4}
+              max={32}
+              onChange={e => set('participants_limit', Number(e.target.value))}
+              className="w-full border border-slate-600 bg-slate-800 text-white rounded-lg px-4 py-3"
+            />
+          </div>
+        ) : form.grid_format === 'groups_playoff' ? (
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Участников</label>
+            <select
+              value={form.participants_limit}
+              onChange={e => set('participants_limit', Number(e.target.value))}
+              className="w-full border border-slate-600 bg-slate-800 text-white rounded-lg px-4 py-3"
+            >
+              {Array.from({ length: Math.floor((60 - 8) / form.group_size) + 1 }, (_, i) => {
+                const val = 8 + i * form.group_size
+                return val <= 60 ? <option key={val} value={val}>{val}</option> : null
+              }).filter(Boolean)}
+            </select>
+          </div>
+        ) : (
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Участников</label>
+            <select
+              value={form.participants_limit}
+              onChange={e => set('participants_limit', Number(e.target.value))}
+              className="w-full border border-slate-600 bg-slate-800 text-white rounded-lg px-4 py-3"
+            >
+              <option value={8}>8</option>
+              <option value={16}>16</option>
+              <option value={32}>32</option>
+              <option value={64}>64</option>
+              <option value={128}>128</option>
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Формат матча */}

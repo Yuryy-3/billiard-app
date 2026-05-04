@@ -26,6 +26,7 @@ export function useBracketRealtime(tournamentId: string, initialMatches: MatchWi
               player1_id, player2_id,
               score1, score2, winner_id,
               table_number, started_at, finished_at,
+              bracket, group_id,
               player1:profiles!matches_player1_id_fkey(name),
               player2:profiles!matches_player2_id_fkey(name)
             `)

@@ -7,6 +7,7 @@ import type { MatchWithPlayers } from '@/components/bracket/MatchCard'
 type TournamentBrief = {
   title: string
   status: 'draft' | 'open' | 'closed' | 'ongoing' | 'finished'
+  grid_format: 'single_elimination' | 'double_elimination' | 'round_robin' | 'groups_playoff'
 }
 
 export default async function BracketPage({ params }: { params: { id: string } }) {
@@ -14,7 +15,7 @@ export default async function BracketPage({ params }: { params: { id: string } }
 
   const { data: tournamentRaw } = await supabase
     .from('tournaments')
-    .select('title, status')
+    .select('title, status, grid_format')
     .eq('id', params.id)
     .single()
 
@@ -31,6 +32,7 @@ export default async function BracketPage({ params }: { params: { id: string } }
       player1_id, player2_id,
       score1, score2, winner_id,
       table_number, started_at, finished_at,
+      bracket, group_id,
       player1:profiles!matches_player1_id_fkey(name),
       player2:profiles!matches_player2_id_fkey(name)
     `)
@@ -61,7 +63,7 @@ export default async function BracketPage({ params }: { params: { id: string } }
             </span>
           )}
         </div>
-        <BracketView tournamentId={params.id} initialMatches={matches} />
+        <BracketView tournamentId={params.id} initialMatches={matches} gridFormat={tournament.grid_format} />
       </div>
     </main>
   )

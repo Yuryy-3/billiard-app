@@ -1,49 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-type BracketMatch = {
-  tournament_id: string
-  round: number
-  position: number
-  player1_id: string | null
-  player2_id: string | null
-}
-
-function generateBracketMatches(tournamentId: string, playerIds: string[]): BracketMatch[] {
-  const n = playerIds.length
-  if (![16, 32, 64].includes(n)) {
-    throw new Error(`Need exactly 16, 32 or 64 players. Got ${n}`)
-  }
-
-  const shuffled = [...playerIds].sort(() => Math.random() - 0.5)
-  const matches: BracketMatch[] = []
-  const rounds = Math.log2(n)
-
-  const matchesInRound1 = n / 2
-  for (let pos = 0; pos < matchesInRound1; pos++) {
-    matches.push({
-      tournament_id: tournamentId,
-      round: 1,
-      position: pos,
-      player1_id: shuffled[pos * 2],
-      player2_id: shuffled[pos * 2 + 1],
-    })
-  }
-
-  for (let round = 2; round <= rounds; round++) {
-    const matchesInRound = n / Math.pow(2, round)
-    for (let pos = 0; pos < matchesInRound; pos++) {
-      matches.push({
-        tournament_id: tournamentId,
-        round,
-        position: pos,
-        player1_id: null,
-        player2_id: null,
-      })
-    }
-  }
-
-  return matches
-}
+import { generateBracket, type GridFormat } from '../_shared/brackets.ts'
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -79,6 +35,24 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Fetch tournament to get grid_format and group_size
+    const { data: tournament, error: tournamentError } = await supabase
+      .from('tournaments')
+      .select('grid_format, group_size')
+      .eq('id', tournament_id)
+      .single()
+
+    if (tournamentError || !tournament) {
+      return new Response(
+        JSON.stringify({ error: tournamentError?.message ?? 'Tournament not found' }),
+        {
+          status: tournamentError?.code === 'PGRST116' ? 404 : 500,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    // Fetch registered players
     const { data: registrations, error: regError } = await supabase
       .from('registrations')
       .select('user_id')
@@ -93,7 +67,10 @@ Deno.serve(async (req: Request) => {
 
     const playerIds = (registrations ?? []).map((r: { user_id: string }) => r.user_id)
 
-    const matches = generateBracketMatches(tournament_id, playerIds)
+    const gridFormat: GridFormat = (tournament.grid_format ?? 'single_elimination') as GridFormat
+    const matches = generateBracket(gridFormat, tournament_id, playerIds, {
+      groupSize: tournament.group_size ?? 4,
+    })
 
     const { error: insertError } = await supabase.from('matches').insert(matches)
     if (insertError) {
@@ -109,10 +86,13 @@ Deno.serve(async (req: Request) => {
       .eq('id', tournament_id)
 
     if (statusError) {
-      return new Response(JSON.stringify({ error: `Failed to update tournament status: ${statusError.message}` }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return new Response(
+        JSON.stringify({ error: `Failed to update tournament status: ${statusError.message}` }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
     }
 
     return new Response(

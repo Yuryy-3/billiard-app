@@ -17,11 +17,28 @@ const STATUS_COLORS: Record<string, string> = {
   finished: 'bg-slate-700 text-slate-400',
 }
 
+const TOURNAMENT_TYPE_LABELS: Record<string, string> = {
+  open: 'Открытый',
+  championship: 'Чемпионат',
+  cup: 'Кубок',
+  rating: 'Рейтинговый',
+  team: 'Командный',
+}
+
+const GRID_FORMAT_LABELS: Record<string, string> = {
+  single_elimination: 'Олимпийская',
+  double_elimination: 'Двойное выбывание',
+  round_robin: 'Круговая',
+  groups_playoff: 'Группы+плей-офф',
+}
+
 type TournamentRow = {
   id: string
   title: string
   date: string
   status: string
+  tournament_type: string
+  grid_format: string
   profiles: { name: string } | null
   registrations: { count: number }[]
 }
@@ -32,7 +49,7 @@ export default async function AdminTournamentsPage() {
   const { data: tournamentsRaw } = await supabase
     .from('tournaments')
     .select(`
-      id, title, date, status,
+      id, title, date, status, tournament_type, grid_format,
       profiles!tournaments_organizer_id_fkey(name),
       registrations(count)
     `)
@@ -60,7 +77,19 @@ export default async function AdminTournamentsPage() {
               const regCount = t.registrations[0]?.count ?? 0
               return (
                 <tr key={t.id} className="border-b border-slate-700 last:border-0">
-                  <td className="p-4 text-slate-200">{t.title}</td>
+                  <td className="p-4 text-slate-200">
+                    <div className="flex flex-col gap-1">
+                      <span>{t.title}</span>
+                      <div className="flex gap-1 flex-wrap">
+                        <span className="text-xs px-2 py-0.5 rounded-md bg-blue-900/50 text-blue-300">
+                          {TOURNAMENT_TYPE_LABELS[t.tournament_type] ?? t.tournament_type}
+                        </span>
+                        <span className="text-xs px-2 py-0.5 rounded-md bg-green-900/50 text-green-300">
+                          {GRID_FORMAT_LABELS[t.grid_format] ?? t.grid_format}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
                   <td className="p-4 text-slate-400">{t.profiles?.name ?? '—'}</td>
                   <td className="p-4">
                     <span className={`text-xs px-2 py-1 rounded-md ${STATUS_COLORS[t.status] ?? ''}`}>

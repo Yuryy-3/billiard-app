@@ -77,8 +77,8 @@ export interface Database {
           date: string
           address: string
           tables_count: number
-          discipline: 'svoyak' | 'pyramid' | 'combined'
-          participants_limit: 16 | 32 | 64
+          discipline: 'svoyak' | 'pyramid' | 'combined' | 'free_pyramid' | 'nevskaya' | 'kolkhoz' | 'pool_8ball' | 'pool_9ball'
+          participants_limit: number
           wins_to_advance: 2 | 3
           time_limit_min: 45 | 60 | 90
           shot_clock_sec: number
@@ -89,6 +89,9 @@ export interface Database {
           regulation_url: string | null
           status: 'draft' | 'open' | 'closed' | 'ongoing' | 'finished'
           created_at: string
+          tournament_type: 'championship' | 'cup' | 'open' | 'rating' | 'team'
+          grid_format: 'single_elimination' | 'double_elimination' | 'round_robin' | 'groups_playoff'
+          group_size: number | null
         }
         Insert: {
           id?: string
@@ -97,8 +100,8 @@ export interface Database {
           date: string
           address: string
           tables_count?: number
-          discipline: 'svoyak' | 'pyramid' | 'combined'
-          participants_limit: 16 | 32 | 64
+          discipline?: 'svoyak' | 'pyramid' | 'combined' | 'free_pyramid' | 'nevskaya' | 'kolkhoz' | 'pool_8ball' | 'pool_9ball'
+          participants_limit?: number
           wins_to_advance?: 2 | 3
           time_limit_min?: 45 | 60 | 90
           shot_clock_sec?: number
@@ -109,6 +112,9 @@ export interface Database {
           regulation_url?: string | null
           status?: 'draft' | 'open' | 'closed' | 'ongoing' | 'finished'
           created_at?: string
+          tournament_type?: 'championship' | 'cup' | 'open' | 'rating' | 'team'
+          grid_format?: 'single_elimination' | 'double_elimination' | 'round_robin' | 'groups_playoff'
+          group_size?: number | null
         }
         Update: {
           id?: string
@@ -117,8 +123,8 @@ export interface Database {
           date?: string
           address?: string
           tables_count?: number
-          discipline?: 'svoyak' | 'pyramid' | 'combined'
-          participants_limit?: 16 | 32 | 64
+          discipline?: 'svoyak' | 'pyramid' | 'combined' | 'free_pyramid' | 'nevskaya' | 'kolkhoz' | 'pool_8ball' | 'pool_9ball'
+          participants_limit?: number
           wins_to_advance?: 2 | 3
           time_limit_min?: 45 | 60 | 90
           shot_clock_sec?: number
@@ -129,6 +135,9 @@ export interface Database {
           regulation_url?: string | null
           status?: 'draft' | 'open' | 'closed' | 'ongoing' | 'finished'
           created_at?: string
+          tournament_type?: 'championship' | 'cup' | 'open' | 'rating' | 'team'
+          grid_format?: 'single_elimination' | 'double_elimination' | 'round_robin' | 'groups_playoff'
+          group_size?: number | null
         }
         Relationships: []
       }
@@ -174,6 +183,8 @@ export interface Database {
           started_at: string | null
           finished_at: string | null
           created_at: string
+          bracket: string
+          group_id: number
         }
         Insert: {
           id?: string
@@ -189,6 +200,8 @@ export interface Database {
           started_at?: string | null
           finished_at?: string | null
           created_at?: string
+          bracket?: string
+          group_id?: number
         }
         Update: {
           id?: string
@@ -204,6 +217,8 @@ export interface Database {
           started_at?: string | null
           finished_at?: string | null
           created_at?: string
+          bracket?: string
+          group_id?: number
         }
         Relationships: []
       }
