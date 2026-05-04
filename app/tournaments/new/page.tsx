@@ -14,7 +14,7 @@ export default async function NewTournamentPage() {
     .eq('id', user.id)
     .single<{ role: string }>()
 
-  if (profile?.role !== 'organizer') {
+  if (profile?.role !== 'organizer' && profile?.role !== 'admin') {
     redirect('/')
   }
 

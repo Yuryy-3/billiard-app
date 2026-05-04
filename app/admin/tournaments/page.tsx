@@ -59,7 +59,15 @@ export default async function AdminTournamentsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Турниры</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Турниры</h1>
+        <a
+          href="/tournaments/new"
+          className="bg-accent-green text-white text-sm px-4 py-2 rounded-lg font-semibold hover:opacity-90"
+        >
+          + Создать турнир
+        </a>
+      </div>
 
       <div className="bg-slate-800 rounded-xl overflow-hidden">
         <table className="w-full text-sm">
