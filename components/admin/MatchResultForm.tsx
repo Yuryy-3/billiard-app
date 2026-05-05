@@ -57,9 +57,15 @@ export function MatchResultForm({ matchId, player1Id, player2Id, player1Name, pl
       <div className="bg-slate-800 rounded-xl p-5 flex flex-col gap-3">
         <div className="flex items-center gap-3">
           <span className="text-gray-400 text-sm">Стол №</span>
-          <input type="number" value={tableNumber} min={1}
+          <select
+            value={tableNumber}
             onChange={e => setTableNumber(Number(e.target.value))}
-            className="w-16 bg-slate-700 border border-slate-600 text-white rounded px-2 py-1 text-center" />
+            className="bg-slate-700 border border-slate-600 text-white rounded px-2 py-1"
+          >
+            {Array.from({ length: 32 }, (_, i) => i + 1).map(n => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
         </div>
         <div className="text-sm text-gray-300">
           <span className="font-semibold">{player1Name}</span>
