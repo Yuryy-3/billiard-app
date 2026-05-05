@@ -2,7 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { MatchList, type AdminMatch } from '@/components/admin/MatchList'
+import { BracketView } from '@/components/bracket/BracketView'
+import type { MatchWithPlayers } from '@/components/bracket/MatchCard'
 import Link from 'next/link'
+
+type GridFormat = 'single_elimination' | 'double_elimination' | 'round_robin' | 'groups_playoff'
 
 const STATUS_LABELS: Record<string, string> = {
   draft: 'Черновик',
@@ -36,7 +40,9 @@ export default async function AdminPage({ params }: { params: { id: string } }) 
   const { data: matchesRaw } = await supabase
     .from('matches')
     .select(`
-      id, round, position, player1_id, player2_id, winner_id, started_at,
+      id, round, position, bracket, group_id,
+      player1_id, player2_id, winner_id,
+      score1, score2, table_number, started_at, finished_at,
       player1:profiles!matches_player1_id_fkey(name),
       player2:profiles!matches_player2_id_fkey(name)
     `)
@@ -44,7 +50,7 @@ export default async function AdminPage({ params }: { params: { id: string } }) 
     .order('round', { ascending: true })
     .order('position', { ascending: true })
 
-  const matches = (matchesRaw ?? []) as unknown as AdminMatch[]
+  const matches = (matchesRaw ?? []) as unknown as MatchWithPlayers[]
   const hasMatches = matches.length > 0
 
   async function startDraw() {
@@ -68,75 +74,91 @@ export default async function AdminPage({ params }: { params: { id: string } }) 
   const canDraw = tournament.status === 'closed' || tournament.status === 'open'
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-8">
-      <div className="mb-2">
-        <Link href={`/tournaments/${params.id}`} className="text-gray-400 text-sm hover:text-white">
-          ← К турниру
-        </Link>
-      </div>
-      <h1 className="text-2xl font-bold mb-1">{tournament.title}</h1>
-      <p className="text-gray-400 text-sm mb-6">Судейская панель</p>
+    <main className="px-4 py-8">
+      <div className="max-w-lg mx-auto">
+        <div className="mb-2">
+          <Link href={`/tournaments/${params.id}`} className="text-gray-400 text-sm hover:text-white">
+            ← К турниру
+          </Link>
+        </div>
+        <h1 className="text-2xl font-bold mb-1">{tournament.title}</h1>
+        <p className="text-gray-400 text-sm mb-6">Судейская панель</p>
 
-      {/* Блок управления статусом */}
-      {!hasMatches && (
-        <div className="bg-slate-800 rounded-xl p-4 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <span className="text-gray-400 text-sm">Статус: </span>
-              <span className="text-white font-medium">{STATUS_LABELS[tournament.status] ?? tournament.status}</span>
+        {/* Блок управления статусом */}
+        {!hasMatches && (
+          <div className="bg-slate-800 rounded-xl p-4 mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <span className="text-gray-400 text-sm">Статус: </span>
+                <span className="text-white font-medium">{STATUS_LABELS[tournament.status] ?? tournament.status}</span>
+              </div>
+              <span className="text-gray-400 text-sm">Участников: {regCount} / {tournament.participants_limit}</span>
             </div>
-            <span className="text-gray-400 text-sm">Участников: {regCount} / {tournament.participants_limit}</span>
+            <div className="flex flex-wrap gap-2">
+              {tournament.status !== 'open' && (
+                <form action={setStatus.bind(null, 'open')}>
+                  <button type="submit" className="text-xs px-3 py-1.5 rounded-lg bg-green-900 text-green-300 hover:bg-green-800">
+                    Открыть регистрацию
+                  </button>
+                </form>
+              )}
+              {tournament.status !== 'closed' && tournament.status !== 'ongoing' && tournament.status !== 'finished' && (
+                <form action={setStatus.bind(null, 'closed')}>
+                  <button type="submit" className="text-xs px-3 py-1.5 rounded-lg bg-yellow-900 text-yellow-300 hover:bg-yellow-800">
+                    Закрыть регистрацию
+                  </button>
+                </form>
+              )}
+              {tournament.status === 'ongoing' && (
+                <form action={setStatus.bind(null, 'finished')}>
+                  <button type="submit" className="text-xs px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600">
+                    Завершить турнир
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {tournament.status !== 'open' && (
-              <form action={setStatus.bind(null, 'open')}>
-                <button type="submit" className="text-xs px-3 py-1.5 rounded-lg bg-green-900 text-green-300 hover:bg-green-800">
-                  Открыть регистрацию
-                </button>
-              </form>
-            )}
-            {tournament.status !== 'closed' && tournament.status !== 'ongoing' && tournament.status !== 'finished' && (
-              <form action={setStatus.bind(null, 'closed')}>
-                <button type="submit" className="text-xs px-3 py-1.5 rounded-lg bg-yellow-900 text-yellow-300 hover:bg-yellow-800">
-                  Закрыть регистрацию
-                </button>
-              </form>
-            )}
-            {tournament.status === 'ongoing' && (
-              <form action={setStatus.bind(null, 'finished')}>
-                <button type="submit" className="text-xs px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600">
-                  Завершить турнир
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
+        )}
 
-      {!hasMatches ? (
-        <div className="text-center py-10">
-          <p className="text-gray-400 mb-2">Участники зарегистрированы</p>
-          <p className="text-gray-500 text-sm mb-8">
-            {canDraw
-              ? 'Нажмите кнопку ниже, чтобы провести жеребьёвку и сформировать сетку'
-              : 'Сначала закройте регистрацию, затем проведите жеребьёвку'}
-          </p>
-          {canDraw && (
-            <form action={startDraw}>
-              <button type="submit"
-                className="bg-green-600 hover:bg-green-700 text-white rounded-xl px-8 py-4 font-bold text-lg transition">
-                🎱 Провести жеребьёвку
-              </button>
-            </form>
-          )}
+        {!hasMatches ? (
+          <div className="text-center py-10">
+            <p className="text-gray-400 mb-2">Участники зарегистрированы</p>
+            <p className="text-gray-500 text-sm mb-8">
+              {canDraw
+                ? 'Нажмите кнопку ниже, чтобы провести жеребьёвку и сформировать сетку'
+                : 'Сначала закройте регистрацию, затем проведите жеребьёвку'}
+            </p>
+            {canDraw && (
+              <form action={startDraw}>
+                <button type="submit"
+                  className="bg-green-600 hover:bg-green-700 text-white rounded-xl px-8 py-4 font-bold text-lg transition">
+                  🎱 Провести жеребьёвку
+                </button>
+              </form>
+            )}
+          </div>
+        ) : (
+          <MatchList
+            matches={matches as unknown as AdminMatch[]}
+            timeLimitMin={tournament.time_limit_min}
+            shotClockSec={tournament.shot_clock_sec}
+            shotClockExtensionSec={tournament.shot_clock_extension_sec}
+          />
+        )}
+      </div>
+
+      {/* Сетка турнира */}
+      {hasMatches && (
+        <div className="max-w-4xl mx-auto mt-10 px-4">
+          <div className="border-t border-slate-700 pt-8">
+            <h2 className="text-lg font-bold mb-5">Сетка турнира</h2>
+            <BracketView
+              tournamentId={params.id}
+              initialMatches={matches}
+              gridFormat={tournament.grid_format as GridFormat}
+            />
+          </div>
         </div>
-      ) : (
-        <MatchList
-          matches={matches}
-          timeLimitMin={tournament.time_limit_min}
-          shotClockSec={tournament.shot_clock_sec}
-          shotClockExtensionSec={tournament.shot_clock_extension_sec}
-        />
       )}
     </main>
   )

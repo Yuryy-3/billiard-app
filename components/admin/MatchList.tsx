@@ -15,8 +15,8 @@ export type AdminMatch = {
   player2: { name: string } | null
 }
 
-const ROUND_LABELS: Record<number, string> = {
-  1: '1/8 финала', 2: '1/4 финала', 3: 'Полуфинал', 4: 'Финал',
+const LABELS_FROM_END: Record<number, string> = {
+  1: 'Финал', 2: 'Полуфинал', 3: '1/4 финала', 4: '1/8 финала', 5: '1/16 финала',
 }
 
 interface Props {
@@ -28,6 +28,8 @@ interface Props {
 
 export function MatchList({ matches, timeLimitMin, shotClockSec, shotClockExtensionSec }: Props) {
   const [completedIds, setCompletedIds] = useState<string[]>([])
+  const totalRounds = matches.length > 0 ? Math.max(...matches.map(m => m.round)) : 0
+  const getRoundLabel = (round: number) => LABELS_FROM_END[totalRounds - round + 1] ?? `Раунд ${round}`
 
   const activeMatches = matches.filter(m =>
     m.player1_id !== null && m.player2_id !== null &&
@@ -49,7 +51,7 @@ export function MatchList({ matches, timeLimitMin, shotClockSec, shotClockExtens
       {activeMatches.map(match => (
         <div key={match.id}>
           <div className="text-xs text-gray-400 mb-2 uppercase tracking-wide">
-            {ROUND_LABELS[match.round] ?? `Раунд ${match.round}`} · Пара {match.position + 1}
+            {getRoundLabel(match.round)} · Пара {match.position + 1}
           </div>
           <MatchResultForm
             matchId={match.id}

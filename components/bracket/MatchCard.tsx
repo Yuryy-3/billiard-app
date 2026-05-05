@@ -40,7 +40,7 @@ export function MatchCard({ match }: { match: MatchWithPlayers }) {
         <span className={['truncate flex-1', p1Won ? 'font-bold text-green-400' : 'text-gray-300'].join(' ')}>
           {match.player1?.name ?? 'TBD'}
         </span>
-        <span className="font-mono text-lg ml-2 shrink-0">{match.score1}</span>
+        <span className="font-mono text-lg ml-2 shrink-0">{match.started_at ? match.score1 : '—'}</span>
       </div>
       <div className="h-px bg-slate-600" />
       <div className={['px-3 py-2 flex justify-between items-center',
@@ -48,7 +48,7 @@ export function MatchCard({ match }: { match: MatchWithPlayers }) {
         <span className={['truncate flex-1', p2Won ? 'font-bold text-green-400' : 'text-gray-300'].join(' ')}>
           {match.player2?.name ?? 'TBD'}
         </span>
-        <span className="font-mono text-lg ml-2 shrink-0">{match.score2}</span>
+        <span className="font-mono text-lg ml-2 shrink-0">{match.started_at ? match.score2 : '—'}</span>
       </div>
       {match.table_number !== null && (
         <div className="bg-slate-900 px-3 py-1 text-xs text-gray-500 text-center">
