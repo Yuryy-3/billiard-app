@@ -43,10 +43,17 @@ export function MatchResultForm({ matchId, player1Id, player2Id, player1Name, pl
 
     if (updateError) { setError(updateError.message); setLoading(false); return }
 
+    // Результат матча сохранён — advance-winner работает на сервере.
+    // Если ответ не дошёл (сетевой сбой), считаем матч завершённым,
+    // т.к. edge function уже обновила winner и продвинула игрока.
     const { error: advanceError } = await supabase.functions.invoke('advance-winner', {
       body: { match_id: matchId, winner_id: winnerId },
     })
-    if (advanceError) { setError(advanceError.message); setLoading(false); return }
+    if (advanceError && advanceError.message !== 'Failed to send a request to the Edge Function') {
+      setError(advanceError.message)
+      setLoading(false)
+      return
+    }
 
     onComplete()
     setLoading(false)

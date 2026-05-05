@@ -1,8 +1,18 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { routeDoubleEliminationWinner } from '../_shared/brackets.ts'
 
-// Returns a Response on DB error, null on success (advanced or no next match).
-// `advanced` out-param communicated via returned object; we use a wrapper type.
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...CORS },
+  })
+}
+
 async function advanceSingleEliminationSlot(
   supabase: ReturnType<typeof createClient>,
   tournamentId: string,
@@ -22,7 +32,7 @@ async function advanceSingleEliminationSlot(
     .eq('round', nextRound)
     .eq('position', nextPosition)
     .eq('bracket', bracket)
-    .single()
+    .maybeSingle()
 
   if (nextMatch) {
     const { error } = await supabase
@@ -30,27 +40,17 @@ async function advanceSingleEliminationSlot(
       .update({ [updateField]: winnerId })
       .eq('id', nextMatch.id)
     if (error) {
-      return {
-        error: new Response(JSON.stringify({ error: error.message }), {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' },
-        }),
-      }
+      return { error: json({ error: error.message }, 500) }
     }
     return { advanced: true }
   } else {
-    return { advanced: false } // no next match — caller should finish tournament
+    return { advanced: false }
   }
 }
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      },
-    })
+    return new Response('ok', { headers: CORS })
   }
 
   try {
@@ -58,18 +58,12 @@ Deno.serve(async (req: Request) => {
     try {
       body = await req.json()
     } catch {
-      return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return json({ error: 'Invalid JSON body' }, 400)
     }
 
     const { match_id, winner_id } = body
     if (!match_id || !winner_id) {
-      return new Response(JSON.stringify({ error: 'match_id and winner_id required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return json({ error: 'match_id and winner_id required' }, 400)
     }
 
     const supabase = createClient(
@@ -77,7 +71,6 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Fetch current match
     const { data: match, error: matchError } = await supabase
       .from('matches')
       .select('id, round, position, bracket, group_id, tournament_id, player1_id, player2_id')
@@ -85,13 +78,9 @@ Deno.serve(async (req: Request) => {
       .single()
 
     if (matchError || !match) {
-      return new Response(JSON.stringify({ error: 'Match not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return json({ error: 'Match not found' }, 404)
     }
 
-    // Fetch tournament
     const { data: tournament, error: tournamentError } = await supabase
       .from('tournaments')
       .select('grid_format, participants_limit, group_size')
@@ -99,23 +88,16 @@ Deno.serve(async (req: Request) => {
       .single()
 
     if (tournamentError || !tournament) {
-      return new Response(JSON.stringify({ error: 'Tournament not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return json({ error: 'Tournament not found' }, 404)
     }
 
-    // Update winner_id on current match
     const { error: updateMatchError } = await supabase
       .from('matches')
       .update({ winner_id })
       .eq('id', match_id)
 
     if (updateMatchError) {
-      return new Response(JSON.stringify({ error: `Failed to update match: ${updateMatchError.message}` }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return json({ error: `Failed to update match: ${updateMatchError.message}` }, 500)
     }
 
     const { grid_format } = tournament
@@ -123,26 +105,14 @@ Deno.serve(async (req: Request) => {
     // A. single_elimination
     if (grid_format === 'single_elimination') {
       const result = await advanceSingleEliminationSlot(
-        supabase,
-        match.tournament_id,
-        match,
-        winner_id,
-        'main'
+        supabase, match.tournament_id, match, winner_id, 'main'
       )
       if ('error' in result) return result.error
 
       if (!result.advanced) {
         const { error: finishError } = await supabase
-          .from('tournaments')
-          .update({ status: 'finished' })
-          .eq('id', match.tournament_id)
-
-        if (finishError) {
-          return new Response(JSON.stringify({ error: `Failed to finish tournament: ${finishError.message}` }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        }
+          .from('tournaments').update({ status: 'finished' }).eq('id', match.tournament_id)
+        if (finishError) return json({ error: `Failed to finish tournament: ${finishError.message}` }, 500)
       }
     }
 
@@ -150,87 +120,52 @@ Deno.serve(async (req: Request) => {
     else if (grid_format === 'double_elimination') {
       const n = tournament.participants_limit
       const winnerRoute = routeDoubleEliminationWinner(
-        { bracket: match.bracket, round: match.round, position: match.position, n },
-        'winner'
+        { bracket: match.bracket, round: match.round, position: match.position, n }, 'winner'
       )
       const loserRoute = routeDoubleEliminationWinner(
-        { bracket: match.bracket, round: match.round, position: match.position, n },
-        'loser'
+        { bracket: match.bracket, round: match.round, position: match.position, n }, 'loser'
       )
       const loserId = winner_id === match.player1_id ? match.player2_id : match.player1_id
 
       if (winnerRoute !== null) {
         const { data: winnerNextMatch } = await supabase
-          .from('matches')
-          .select('id')
+          .from('matches').select('id')
           .eq('tournament_id', match.tournament_id)
           .eq('bracket', winnerRoute.bracket)
           .eq('round', winnerRoute.round)
           .eq('position', winnerRoute.position)
-          .single()
+          .maybeSingle()
 
         if (winnerNextMatch) {
           const updateField = winnerRoute.slot === 0 ? 'player1_id' : 'player2_id'
           const { error: advanceError } = await supabase
-            .from('matches')
-            .update({ [updateField]: winner_id })
-            .eq('id', winnerNextMatch.id)
-
-          if (advanceError) {
-            return new Response(JSON.stringify({ error: `Failed to advance winner: ${advanceError.message}` }), {
-              status: 500,
-              headers: { 'Content-Type': 'application/json' },
-            })
-          }
+            .from('matches').update({ [updateField]: winner_id }).eq('id', winnerNextMatch.id)
+          if (advanceError) return json({ error: `Failed to advance winner: ${advanceError.message}` }, 500)
         } else {
-          return new Response(JSON.stringify({ error: 'Next winner match not found in DB' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return json({ error: 'Next winner match not found in DB' }, 500)
         }
       } else {
-        // winnerRoute null means grand_final finished → tournament over
         const { error: finishError } = await supabase
-          .from('tournaments')
-          .update({ status: 'finished' })
-          .eq('id', match.tournament_id)
-
-        if (finishError) {
-          return new Response(JSON.stringify({ error: `Failed to finish tournament: ${finishError.message}` }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        }
+          .from('tournaments').update({ status: 'finished' }).eq('id', match.tournament_id)
+        if (finishError) return json({ error: `Failed to finish tournament: ${finishError.message}` }, 500)
       }
 
       if (loserRoute !== null && loserId) {
         const { data: loserNextMatch } = await supabase
-          .from('matches')
-          .select('id')
+          .from('matches').select('id')
           .eq('tournament_id', match.tournament_id)
           .eq('bracket', loserRoute.bracket)
           .eq('round', loserRoute.round)
           .eq('position', loserRoute.position)
-          .single()
+          .maybeSingle()
 
         if (loserNextMatch) {
           const updateField = loserRoute.slot === 0 ? 'player1_id' : 'player2_id'
           const { error: loserAdvanceError } = await supabase
-            .from('matches')
-            .update({ [updateField]: loserId })
-            .eq('id', loserNextMatch.id)
-
-          if (loserAdvanceError) {
-            return new Response(JSON.stringify({ error: `Failed to advance loser: ${loserAdvanceError.message}` }), {
-              status: 500,
-              headers: { 'Content-Type': 'application/json' },
-            })
-          }
+            .from('matches').update({ [updateField]: loserId }).eq('id', loserNextMatch.id)
+          if (loserAdvanceError) return json({ error: `Failed to advance loser: ${loserAdvanceError.message}` }, 500)
         } else {
-          return new Response(JSON.stringify({ error: 'Next loser match not found in DB' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return json({ error: 'Next loser match not found in DB' }, 500)
         }
       }
     }
@@ -238,99 +173,56 @@ Deno.serve(async (req: Request) => {
     // C. round_robin
     else if (grid_format === 'round_robin') {
       const { count, error: countError } = await supabase
-        .from('matches')
-        .select('id', { count: 'exact', head: true })
+        .from('matches').select('id', { count: 'exact', head: true })
         .eq('tournament_id', match.tournament_id)
         .eq('bracket', 'main')
         .is('winner_id', null)
 
-      if (countError) {
-        return new Response(JSON.stringify({ error: `Failed to count matches: ${countError.message}` }), {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      }
+      if (countError) return json({ error: `Failed to count matches: ${countError.message}` }, 500)
 
       if (count === 0) {
         const { error: finishError } = await supabase
-          .from('tournaments')
-          .update({ status: 'finished' })
-          .eq('id', match.tournament_id)
-
-        if (finishError) {
-          return new Response(JSON.stringify({ error: `Failed to finish tournament: ${finishError.message}` }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        }
+          .from('tournaments').update({ status: 'finished' }).eq('id', match.tournament_id)
+        if (finishError) return json({ error: `Failed to finish tournament: ${finishError.message}` }, 500)
       }
     }
 
-    // D. groups_playoff, bracket='group'
+    // D. groups_playoff — group stage
     else if (grid_format === 'groups_playoff' && match.bracket === 'group') {
       const { count, error: countError } = await supabase
-        .from('matches')
-        .select('id', { count: 'exact', head: true })
+        .from('matches').select('id', { count: 'exact', head: true })
         .eq('tournament_id', match.tournament_id)
         .eq('bracket', 'group')
         .eq('group_id', match.group_id)
         .is('winner_id', null)
 
-      if (countError) {
-        return new Response(JSON.stringify({ error: `Failed to count group matches: ${countError.message}` }), {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' },
-        })
-      }
+      if (countError) return json({ error: `Failed to count group matches: ${countError.message}` }, 500)
 
       if (count === 0) {
         const { error: invokeError } = await supabase.functions.invoke('finalize-group', {
           body: { tournament_id: match.tournament_id, group_id: match.group_id },
         })
-
-        if (invokeError) {
-          return new Response(JSON.stringify({ error: `Failed to invoke finalize-group: ${invokeError.message}` }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        }
+        if (invokeError) return json({ error: `Failed to invoke finalize-group: ${invokeError.message}` }, 500)
       }
     }
 
-    // E. groups_playoff, bracket='playoff'
+    // E. groups_playoff — playoff stage
     else if (grid_format === 'groups_playoff' && match.bracket === 'playoff') {
       const result = await advanceSingleEliminationSlot(
-        supabase,
-        match.tournament_id,
-        match,
-        winner_id,
-        'playoff'
+        supabase, match.tournament_id, match, winner_id, 'playoff'
       )
       if ('error' in result) return result.error
 
       if (!result.advanced) {
         const { error: finishError } = await supabase
-          .from('tournaments')
-          .update({ status: 'finished' })
-          .eq('id', match.tournament_id)
-
-        if (finishError) {
-          return new Response(JSON.stringify({ error: `Failed to finish tournament: ${finishError.message}` }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        }
+          .from('tournaments').update({ status: 'finished' }).eq('id', match.tournament_id)
+        if (finishError) return json({ error: `Failed to finish tournament: ${finishError.message}` }, 500)
       }
     }
 
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return json({ success: true })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return json({ error: message }, 500)
   }
 })
